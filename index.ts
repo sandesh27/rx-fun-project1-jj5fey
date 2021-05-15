@@ -1,4 +1,4 @@
-import { fromEvent, interval, animationFrameScheduler } from 'rxjs';
+import { fromEvent, interval, asyncScheduler } from 'rxjs';
 import { map, startWith, tap, observeOn } from 'rxjs/operators';
 
 console.clear();
@@ -11,23 +11,24 @@ const doubledValueEl: HTMLInputElement = document.querySelector(
 
 const intervals = interval(10);
 
-const range$ = fromEvent(rangeEl, 'input').pipe(
-  map(e => e.target.value),
-  startWith(rangeEl.value),
-  tap(val => (rangeValueEl.innerText = val))
-);
-
-const double$ = range$.pipe(
-  map(val => val * 2),
-  tap(val => (doubledValueEl.innerText = val))
-);
-
-const doubleSubcription = double$.subscribe();
-
 intervals
   .pipe(
-    observeOn(animationFrameScheduler) // ...but we will observe on animationFrame
-  ) // scheduler to ensure smooth animation.
+    observeOn(asyncScheduler),
+    tap(val => {
+      const range$ = fromEvent(rangeEl, 'change').pipe(
+        map(e => e.target.value),
+        startWith(rangeEl.value),
+        tap(val => (rangeValueEl.innerText = val))
+      );
+      const double$ = range$.pipe(
+        map(val => val * 2),
+        tap(val => (doubledValueEl.innerText = val))
+      );
+      double$.subscribe();
+    })
+  )
   .subscribe(val => {
-    rangeEl.value = val + 1;
+    if (val < 100) {
+      rangeEl.value = val + 1;
+    }
   });
