@@ -13,9 +13,8 @@ const intervals = interval(10);
 
 intervals
   .pipe(
-    observeOn(asyncScheduler),
     tap(val => {
-      const range$ = fromEvent(rangeEl, 'change').pipe(
+      const range$ = fromEvent(rangeEl, 'input').pipe(
         map(e => e.target.value),
         startWith(rangeEl.value),
         tap(val => (rangeValueEl.innerText = val))
@@ -25,10 +24,9 @@ intervals
         tap(val => (doubledValueEl.innerText = val))
       );
       double$.subscribe();
-    })
+    }),
+    observeOn(asyncScheduler)
   )
   .subscribe(val => {
-    if (val < 100) {
-      rangeEl.value = val + 1;
-    }
+    val < 100 ? (rangeEl.value = val + 1) : 1;    
   });
